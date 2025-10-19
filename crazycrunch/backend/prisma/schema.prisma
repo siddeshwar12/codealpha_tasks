@@ -1,0 +1,56 @@
+// Prisma schema for CrazyCrunch
+// Database: PostgreSQL (set DATABASE_URL in .env)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  username  String    @unique
+  email     String    @unique
+  password  String
+  avatarUrl String?   @db.Text
+  videos    Video[]
+  likes     Like[]
+  comments  Comment[]
+}
+
+model Video {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  title        String
+  description  String?   @db.Text
+  url          String    @db.Text
+  thumbnailUrl String?   @db.Text
+  userId       Int
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes        Like[]
+  comments     Comment[]
+}
+
+model Like {
+  id      Int   @id @default(autoincrement())
+  userId  Int
+  videoId Int
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video   Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  content   String   @db.Text
+  userId    Int
+  videoId   Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+}
